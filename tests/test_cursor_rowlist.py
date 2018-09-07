@@ -8,9 +8,10 @@ class TestCursorRowList(TestExternalDatabase):
         self.assertEqual(
             ctds.RowList.__doc__,
             '''\
-A :ref:`sequence <python:sequence>` object which buffers result set rows
-in a lightweight manner. Python objects wrapping the columnar data are
-only created when the data is actually accessed.
+A :ref:`sequence <python:sequence>` of :py:class:`ctds.Row` objects
+which buffers result set rows in a lightweight manner. Python objects
+wrapping the columnar data are only created when the data is actually
+accessed.
 '''
         )
 

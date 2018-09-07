@@ -7,6 +7,7 @@ API Reference
     cursor
     ctds
     parameter
+    row
     rowlist
     types
     pool

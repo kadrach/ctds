@@ -2760,9 +2760,69 @@ static PyMappingMethods s_Row_as_mapping = {
 
 static PyObject* Row_getattro(PyObject* self, PyObject* attr)
 {
-    return Row_lookup_column(self, attr, PyExc_AttributeError);
+    PyObject* object = Row_lookup_column(self, attr, NULL);
+    return (object) ? object : PyObject_GenericGetAttr(self, attr);
 }
 
+static const char s_Row_asdict_doc[] =
+    "asdict()\n"
+    "\n"
+    "Return the row as a Python :py:class:`dict` mapping column names to\n"
+    "values. If the column doesn't have a name, the index is used as the key.\n"
+    "\n"
+    ":return: A mapping of column name (or index) to value.\n"
+    ":rtype: dict\n";
+
+static PyObject* Row_asdict(PyObject* self, PyObject* args)
+{
+    struct Row* row = (struct Row*)self;
+
+    PyObject* dict = PyDict_New();
+    if (dict)
+    {
+        size_t ix;
+        for (ix = 0; ix < row->description->ncolumns; ++ix)
+        {
+            PyObject* key;
+            if (row->description->columns[ix].dbcol.ActualName[0] != '\0')
+            {
+                key = PyUnicode_FromString(row->description->columns[ix].dbcol.ActualName);
+            }
+            else
+            {
+                key = PyLong_FromSize_t(ix);
+            }
+
+            if (!key)
+            {
+                break;
+            }
+
+            if (0 != PyDict_SetItem(dict, key, row->values[ix]))
+            {
+                break;
+            }
+        }
+        if (PyErr_Occurred())
+        {
+            Py_DECREF(dict);
+            dict = NULL;
+        }
+    }
+
+    return dict;
+
+    UNUSED(args);
+}
+
+static PyMethodDef Row_methods[] = {
+    /* ml_name, ml_meth, ml_flags, ml_doc */
+    { "asdict",     Row_asdict,             METH_NOARGS,                   s_Row_asdict_doc },
+    { NULL,         NULL,                   0,                             NULL }
+};
+
+static const char s_Row_doc[] =
+    "A result set row.\n";
 
 PyTypeObject RowType = {
     PyVarObject_HEAD_INIT(NULL, 0)
@@ -2785,14 +2845,14 @@ PyTypeObject RowType = {
     NULL,                                     /* tp_setattro */
     NULL,                                     /* tp_as_buffer */
     Py_TPFLAGS_DEFAULT,                       /* tp_flags */
-    NULL,                                     /* tp_doc */
+    s_Row_doc,                                /* tp_doc */
     NULL,                                     /* tp_traverse */
     NULL,                                     /* tp_clear */
     NULL,                                     /* tp_richcompare */
     0,                                        /* tp_weaklistoffset */
     NULL,                                     /* tp_iter */
     NULL,                                     /* tp_iternext */
-    NULL,                                     /* tp_methods */
+    Row_methods,                              /* tp_methods */
     NULL,                                     /* tp_members */
     NULL,                                     /* tp_getset */
     NULL,                                     /* tp_base */
@@ -2817,6 +2877,15 @@ PyTypeObject RowType = {
 #endif /* if PY_VERSION_HEX >= 0x03040000 */
 };
 
+PyTypeObject* RowType_init(void)
+{
+    if (0 != PyType_Ready(&RowType))
+    {
+        return NULL;
+    }
+    return &RowType;
+}
+
 /* Stores the `struct RowBuffer` for a row until requested by the client. */
 struct LazilyCreatedRow {
     bool converted;
@@ -2827,9 +2896,10 @@ struct LazilyCreatedRow {
 };
 
 static const char s_RowList_description_doc[] =
-    "A :ref:`sequence <python:sequence>` object which buffers result set rows\n"
-    "in a lightweight manner. Python objects wrapping the columnar data are\n"
-    "only created when the data is actually accessed.\n";
+    "A :ref:`sequence <python:sequence>` of :py:class:`ctds.Row` objects\n"
+    "which buffers result set rows in a lightweight manner. Python objects\n"
+    "wrapping the columnar data are only created when the data is actually\n"
+    "accessed.\n";
 
 struct RowList {
     PyObject_VAR_HEAD

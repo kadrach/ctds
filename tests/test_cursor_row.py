@@ -1,7 +1,30 @@
+import ctds
+
 from .base import TestExternalDatabase
 from .compat import long_, unicode_
 
 class TestCursorRow(TestExternalDatabase):
+
+    def test___doc__(self):
+        self.assertEqual(
+            ctds.Row.__doc__,
+            '''\
+A result set row.
+'''
+        )
+
+        self.assertEqual(
+            ctds.Row.asdict.__doc__,
+            '''\
+asdict()
+
+Return the row as a Python :py:class:`dict` mapping column names to
+values. If the column doesn't have a name, the index is used as the key.
+
+:return: A mapping of column name (or index) to value.
+:rtype: dict
+'''
+        )
 
     def test_subscript(self):
         with self.connect() as connection:
@@ -123,3 +146,31 @@ class TestCursorRow(TestExternalDatabase):
             pass
         else:
             self.fail('row.attr lookup did not fail as expected') # pragma: nocover
+
+    def test_asdict(self):
+        with self.connect() as connection:
+            with connection.cursor() as cursor:
+                args = (1, 'two', 'three', 4)
+                cursor.execute(
+                    '''
+                    SELECT
+                        :0 AS Col1,
+                        :1 AS Col2,
+                        :2,
+                        :3 AS Col4
+                    ''',
+                    args
+                )
+                rows = cursor.fetchall()
+
+        self.assertEqual(len(rows), 1)
+
+        self.assertEqual(
+            rows[0].asdict(),
+            {
+                'Col1': args[0],
+                'Col2': args[1],
+                long_(2): args[2],
+                'Col4': args[3],
+            }
+        )
