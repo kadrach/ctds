@@ -13,7 +13,7 @@ import setuptools.dist
 # Version information is defined here and compiled into the extension.
 CTDS_MAJOR_VERSION = 1
 CTDS_MINOR_VERSION = 8
-CTDS_PATCH_VERSION = 0
+CTDS_PATCH_VERSION = 1
 
 
 TESTS_REQUIRE = []
@@ -120,9 +120,9 @@ setuptools.setup(
 
     author='Joshua Lang',
     author_email='joshual@zillow.com',
-    description='DB API 2.0-compliant Linux driver for SQL Server',
+    description='DB API 2.0-compliant driver for SQL Server',
     long_description=read('README.rst'),
-    keywords=' '.join([
+    keywords=[
         'freetds',
         'mssql',
         'SQL',
@@ -132,7 +132,7 @@ setuptools.setup(
         'DB-API',
         'PEP-0249',
         'database',
-    ]),
+    ],
     license='MIT',
     url='https://github.com/zillow/ctds',
     classifiers=[
