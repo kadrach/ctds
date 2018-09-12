@@ -6,6 +6,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 - Fix truncation of strings containing multi-byte sequences when not using
 `sp_executesql`.
+- Preserve microsecond precision of _TIME_ and _DATETIME2_ SQL types when
+converting to Python (and supported by FreeTDS).
 
 ## [1.8.0] - 2018-09-07
 ### Added

@@ -153,6 +153,10 @@ class TestExternalDatabase(unittest.TestCase):
     def use_utf16(self):
         return self.freetds_version >= (1, 0, 0)
 
+    @property
+    def tdstime_supported(self):
+        return self.freetds_version >= (0, 95, 0)
+
     # Older versions of FreeTDS improperly round the money to the nearest hundredth.
     def round_money(self, money):
         if self.freetds_version > (0, 92, 405): # pragma: nobranch
